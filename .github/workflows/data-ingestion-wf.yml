@@ -1,0 +1,41 @@
+# This workflow will build a Java project with Gradle
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
+
+name: Cloud Data Ingestion Workflow - Gradle
+
+on:
+  workflow_dispatch:
+    # Inputs the workflow accepts.
+    inputs:
+      name:
+        # Friendly description to be shown in the UI instead of 'name'
+        description: 'Change description'
+        # Default value if no value is explicitly provided
+        #default: 'Default branch for PP/SIT is main and for lower env develop'
+        # Input has to be provided for the workflow to run
+        required: true
+      env:
+        description: "Data Ingestion Environment(DEV/SIT/PP/PROD)"        
+        required: true
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{github.event.inputs.env}}
+
+    steps:
+    - name: check lower environmnet
+      if: "!contains(github.event.inputs.env, 'dev')"
+      run: exit 1    
+    - uses: actions/checkout@v2
+    - name: Set up JDK 8
+      uses: actions/setup-java@v2
+      with:
+        java-version: '8'
+        distribution: 'adopt'
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    - name: Build with Gradle
+      run: ./gradlew -P${{github.event.inputs.env}} bootRun
